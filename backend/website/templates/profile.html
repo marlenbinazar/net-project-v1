@@ -1,0 +1,22 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Welcome</title>
+    <style>
+        button{
+            right: 10px;
+            top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>THIS IS PROFILE PAGE</h1>
+    <h2>Welcome! {{ email }}</h2>
+    <div>
+        <form action="{% url 'user_logout' %}" method="post">
+            {% csrf_token %}
+            <button type="submit">Log Out</button>
+          </form>
+    </div>
+</body>
+</html>

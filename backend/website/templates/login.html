@@ -1,0 +1,26 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <script>function signupf(){var url = "{% url 'signup' %}";window.location.href=url}</script>
+    <title>Sign in</title>
+</head>
+<body>
+    <h1>LOG IN PAGE</h1>
+    <br>
+    {% for msg in messages %}
+        <p class="error">{{ msg }}</p>
+    {% endfor %}
+
+    <form action="{% url 'login' %}" method="post">
+        {% csrf_token %}
+        Email:
+        <input type="email" name="email" placeholder="your email"><br><br>
+        Password:
+        <input type="password" name="password" placeholder="your password"><br><br>
+        <input type="submit" value="Log In">
+        <br>
+        <p>Don't have an account?</p>
+        <button type="button" onclick=signupf()>Sign Up</button>
+    </form>
+</body>
+</html>
