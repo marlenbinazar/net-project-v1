@@ -7,9 +7,12 @@
 <body>
     <h1>SIGN UP PAGE</h1>
     <br>
-    {% if error_message %}
+    <!-- {% if error_message %}
         <p class="error">{{ error_message }}</p>
-    {% endif %}
+    {% endif %} -->
+    {% for msg in messages %}
+        <p class="error">{{ msg }}</p>
+    {% endfor %}
 
     <form action="{% url 'signup' %}" method="post">
         {% csrf_token %}

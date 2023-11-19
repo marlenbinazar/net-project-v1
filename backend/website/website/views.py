@@ -1,85 +1,83 @@
-from django.shortcuts import render, redirect
-from django.contrib.auth.decorators import login_required
-from django.contrib import auth, messages
-from django.contrib.auth import logout
-from requests import HTTPError
 import pyrebase
+from django.contrib import auth, messages
+from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import redirect, render
 from django.urls import reverse
+from requests import HTTPError
 
-config = {
-    'apiKey': "AIzaSyDeDn2g2FdM1U4ogovDQlnui7H1qjGL9iY",
-    'authDomain': "netshards-dev.firebaseapp.com",
-    'databaseURL': "https://netshards-dev-default-rtdb.europe-west1.firebasedatabase.app/",
-    'projectId': "netshards-dev",
-    'storageBucket': "netshards-dev.appspot.com",
-    'messagingSenderId': "8675030171",
-    'appId': "1:8675030171:web:b637a8d75862229f5ac23e",
-    'measurementId': "G-MCLPQFXBDF"
-}
+from .firebase_utils import (
+    get_user_data_from_firebase,
+    get_user_token,
+    login_user,
+    register_user,
+)
 
-firebase = pyrebase.initialize_app(config)
-authe = firebase.auth()
-database = firebase.database()
-def index(request):
-    return render(request, "index.html")
 
-def user_login(request):
+def register(request):
     if request.method == "POST":
-        email = request.POST.get('email')
-        password = request.POST.get('password')
-        try:
-            user = authe.sign_in_with_email_and_password(email, password)
-            if user is not None:
-                session_id = user['idToken']
-                request.session['uid'] = str(session_id)
-                """ messages.success(request, "You logged in") """
-                email = request.POST.get('email')
-                profile_url = reverse('profile')
-                return redirect(f'{profile_url}?email={email}')
-        except HTTPError as e:
-            if e.response is not None and e.response.status_code == 400:
-                error_message = e.response.json().get('error', {}).get('message')
-                messages.error(request, f"Login failed: {error_message}")
-                return render(request, 'login.html', {'error_message': error_message})
-            else:
-                messages.error(request, "Invalid login credentials")
-                return render(request, 'login.html', {'error_message': "Invalid login credentials"})
+        email = request.POST["email"]
+        password = request.POST["password"]
+
+        # Call Firebase registration function
+        user = register_user(email, password)
+        if user:
+            # Get the user token for further actions
+            user_token = get_user_token(email, password)
+
+            # You can store the user_token in session or cookie
+            # or use it to fetch additional user details from Firebase
+
+            return redirect("home")  # Redirect to the home page or any other view
+        else:
+            # Handle registration failure
+            return render(request, "register.html", {"error": "Registration failed"})
+        # Additional logic, such as creating a user profile in your Django models
+
+    return render(request, "register.html")
+
+
+def login(request):
+    if request.method == "POST":
+        email = request.POST["email"]
+        password = request.POST["password"]
+
+        # Call Firebase login function
+        user = login_user(email, password)
+
+        if user:
+            # Get the user token for further actions
+            user_token = get_user_token(email, password)
+
+            # You can store the user_token in session or cookie
+            # or use it to fetch additional user details from Firebase
+
+            return redirect("home")  # Redirect to the home page or any other view
+        else:
+            # Handle login failure
+            return render(request, "registration/login.html", {"error": "Login failed"})
 
     return render(request, "login.html")
 
-def signup(request):
-    if request.method == "POST":
-        name = request.POST.get('name')
-        email = request.POST.get('email')
-        password = request.POST.get('password')
-        try:
-            user = authe.create_user_with_email_and_password(email, password)
-        except:
-            messages.error(request, "You successfully signed up")
-            return render(request, 'signup.html') 
-
-        uid = user['localId']
-
-        data = {
-            "name":name, 
-            "status":"1"
-        }
-
-        database.child("users").child(uid).child("details").set(data)
-        messages.success(request, "You successfully signed up")
-        return redirect('login')
-
-    return render(request, 'signup.html')
 
 def user_logout(request):
+    # Handle user logout, clear the session, etc.
     logout(request)
-    return redirect('login')
+    return redirect("home")
+
 
 def profile(request):
-    email = request.GET.get('email', '')
-    context = {'email': email}
-    return render(request, 'profile.html', context)
+    user_token = request.session.get(
+        "user_token"
+    )  # Get the user token from session or cookie
 
-
-
-
+    if user_token:
+        # Fetch user data from Firebase using the token
+        # You can store this data in the context and pass it to the template
+        context = {
+            "user_data": get_user_data_from_firebase(user_token),
+        }
+        return render(request, "profile.html", context)
+    else:
+        # Handle unauthenticated user
+        return redirect("login")
