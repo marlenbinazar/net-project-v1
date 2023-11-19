@@ -30,8 +30,23 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "base",
+    "rest_framework",
+    "django.contrib.sites",  # Required for allauth if you plan to use it
+    "allauth",  # Django Allauth for authentication
+    "allauth.account",  # Django Allauth account management
+    "allauth.socialaccount",  # Django Allauth social account integration
 ]
 
+REST_FRAMEWORK = {
+    "DEFAULT_PERMISSION_CLASSES": [
+        "rest_framework.permissions.IsAuthenticated",
+    ],
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework.authentication.SessionAuthentication",
+        "rest_framework.authentication.BasicAuthentication",
+    ],
+}
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
