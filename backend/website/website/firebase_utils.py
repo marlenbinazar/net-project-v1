@@ -1,3 +1,5 @@
+import logging
+
 import pyrebase
 
 config = {
@@ -14,20 +16,29 @@ config = {
 firebase = pyrebase.initialize_app(config)
 auth = firebase.auth()
 db = firebase.database()
+logger = logging.getLogger(__name__)
 
 
-def get_user_data_from_firebase(user_token):
+def login_and_get_user_data(email, password):
     try:
+        # Login and get the user's authentication token
+        user = auth.sign_in_with_email_and_password(email, password)
+        user_token = user["idToken"]
+
         # Decode the token to get the user's UID
-        uid = auth.verify_id_token(user_token)["uid"]
+        decoded_token = auth.verify_id_token(user_token)
+        uid = decoded_token["uid"]
 
         # Fetch user data from the Firebase database
         user_data = db.child("users").child(uid).get().val()
 
-        return user_data
+        return user_data, user_token
+    except auth.AuthError as e:
+        logger.error(f"Firebase Auth Error: {str(e)}")
+        return None, None
     except Exception as e:
-        print(f"Error fetching user data: {str(e)}")
-        return None
+        logger.error(f"Error fetching user data: {str(e)}")
+        return None, None
 
 
 def register_user(email, password):
@@ -36,22 +47,4 @@ def register_user(email, password):
         return user
     except Exception as e:
         print(f"Error creating user: {e}")
-        return None
-
-
-def login_user(email, password):
-    try:
-        user = auth.sign_in_with_email_and_password(email, password)
-        return user
-    except Exception as e:
-        print(f"Error logging in: {e}")
-        return None
-
-
-def get_user_token(email, password):
-    try:
-        user = auth.sign_in_with_email_and_password(email, password)
-        return user["idToken"]
-    except Exception as e:
-        print(f"Error getting user token: {e}")
         return None
