@@ -1,0 +1,7 @@
+{
+    "include": ["./website/static/js/**/*"],
+    "compilerOptions": {
+      "checkJs": false
+    }
+  }
+  

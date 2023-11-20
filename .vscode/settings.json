@@ -1,12 +1,16 @@
 {
     "editor.defaultFormatter": "ms-python.black-formatter",
     "editor.formatOnSave": true,
+    "vetur.validation.interpolation": false,
     "python.formatting.blackArgs": [
-        "--skip-string-normalization"
+        "--skip-string-normalization",
     ],
     "[python]": {
         "editor.codeActionsOnSave": {
             "source.organizeImports": true
         }
+    },
+    "[javascript]": {
+        "editor.defaultFormatter": "vscode.typescript-language-features"
     },
 }
