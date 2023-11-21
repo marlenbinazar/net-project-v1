@@ -18,6 +18,12 @@
     </script>
 </head>
 <body>
+    {% if message %}
+        <p style="color: green;">{{ message }}</p>
+    {% endif %}
+    {% if error %}
+        <p style="color: red;">{{ error }}</p>
+    {% endif %}
     <div id="login-form" style="display: block;">
         <h1>Login</h1>
         <!-- Your login form here -->

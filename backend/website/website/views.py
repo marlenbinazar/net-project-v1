@@ -1,4 +1,5 @@
 from base.models import UserProfile
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.shortcuts import redirect, render
@@ -43,7 +44,8 @@ def register(request):
 
         else:
             # Handle registration failure
-            return render(request, "login.html", {"error": "Registration failed"})
+            messages.error(request, "Registration failed")
+            return render(request, "login.html")
 
         # Additional logic, such as creating a user profile in your Django models
 
@@ -73,24 +75,19 @@ def user_login(request):
         user_data, user_token = login_and_get_user_data(email, password)
 
         if user_data and user_token:
-            # You can store the user_token in session or cookie
-            # or use it to fetch additional user details from Firebase
             if user_data.get("emailVerified"):
                 request.session["user_token"] = user_token
-
                 return redirect(
                     "profile"
                 )  # Redirect to the home page or any other view
             else:
                 # User is not verified, display a message
-                return render(
-                    request,
-                    "login.html",
-                    {"error": "Please verify your email to log in"},
-                )
+                messages.error(request, "Please verify your email to log in")
+                return render(request, "login.html")
         else:
             # Handle login failure
-            return render(request, "auth.html", {"error": "Login failed"})
+            messages.error(request, "Login failed")
+            return render(request, "login.html")
 
     return render(request, "login.html")
 
