@@ -2,6 +2,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Login or Register</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" integrity="sha512-z3gLpd7yknf1YoNbCzqRKc4qyor8gaKU1qmn+CShxbuBusANI9QpRohGBreCFkKxLhei6S9CQXFEbbKuqLg0DA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <script>
         function toggleForms() {
             var loginForm = document.getElementById("login-form");
@@ -16,6 +17,93 @@
             }
         }
     </script>
+    <style>
+        body{
+            background: rgb(5, 149, 245);
+        }
+        .box{
+            position: relative;
+            width: 300px;
+        }
+        .box .inputBox{
+            position: relative;
+            width: 100px;
+            background: #fff;
+            padding: 5px;
+            border-radius: 8px;
+            box-shadow: 0 15px 25px rgba(0, 0, 0 ,0.15);
+
+        }
+        .box .inputBox input{
+            position: relative;
+            width: 100%;
+            outline: none;
+            border: none;
+            padding: 10px 5px;
+        }
+        .box .inputBox #toggleBtn{
+            position: absolute;
+            top: 8px;
+            right: 10px;
+            width: 34px;
+            height: 34px;
+            /* background: rgba(0, 0, 0 ,0.05); */
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .box .inputBox #toggleBtn::before{
+            content: '\f06e';
+            font-family: fontAwesome;
+        }
+        .box .inputBox #toggleBtn.hide::before{
+            content: '\f070';
+        }
+        .validation{
+            background: #376488;
+            padding: 10px;
+            margin-top: 30px;
+            border-radius: 8px;
+            box-shadow: 0 15px 25px rgba(0, 0, 0 ,0.15);
+        }
+        .validation ul{
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+
+        }
+        .validation ul li{
+            position: relative;
+            list-style: none;
+            color: #fff;
+            font-size: 0.85em;
+            transition: 0.5s;
+        }
+        .validation ul li.valid{
+            color: rgba(255,255,255,0.5);
+        }
+        .validation ul li::before{
+            content: '\f2d3';
+            color: red;
+            width: 20px;
+            height: 10px;
+            font-family: fontAwesome;
+            display: inline-flex;
+        }
+        .validation ul li.valid::before{
+            content: '\f14a';
+            color: #0f0;
+        }
+        .hide{
+            display:none;
+        }
+        .show{
+            display:block;
+        }
+    </style>
 </head>
 <body>
     {% if message %}
@@ -35,13 +123,92 @@
             <div class="box">
                 <label for="password">Password:</label>
                 <div class="inputBox">
-                    <input type="password" id="pswrd" placeholder="Password" name="password" required>
-                    <span id="toggleBtn"></span>
+                    <input type="password" onkeyup="checkPassword(this.value)" id="pswrd" placeholder="Password" name="password" required>
+                    <span id="toggleBtn">A</span>
                 </div> 
                 <div class="validation">
-                    
+                    <ul>
+                        <li id="lower">At least one lowercase character</li>
+                        <li id="upper">At least one uppercase character</li>
+                        <li id="number">At least one number</li>
+                        <li id="special">At least one special character</li>
+                        <li id="length">At least 8 character</li>
+                    </ul>
                 </div>
             </div>
+            <script>
+                let pswrd = document.getElementById('pswrd');
+                
+                pswrd.addEventListener('click', () => {
+                    const form = document.getElementById('form');
+
+                    if (form.style.display === 'none') {
+                        // 👇️ this SHOWS the form
+                        form.style.display = 'block';
+                    } else {
+                        // 👇️ this HIDES the form
+                        // form.style.display = 'none';
+                        form.style.display = 'block';
+                    }
+                });
+                let toggleBtn = document.getElementById('toggleBtn');
+                let lowerCase = document.getElementById('lower');
+                let upperCase = document.getElementById('upper');
+                let digit = document.getElementById('number');
+                let specialChar = document.getElementById('special');
+                let minLength = document.getElementById('length');
+
+                function checkPassword(data){
+                    // javascript regulsr expression pattern
+                    const lower = new RegExp('(?=.*[a-z])');
+                    const upper = new RegExp('(?=.*[A-Z])');
+                    const number = new RegExp('(?=.*[0-9])');
+                    const special = new RegExp('(?=.*[!@#\$%\^&\*])');
+                    const length = new RegExp('(?=.{8,})');
+
+                    // lower case validation check
+                    if(lower.test(data)){
+                        lowerCase.classList.add('valid')
+                    } else {
+                        lowerCase.classList.remove('valid')
+                    }
+                    // upper case validation check
+                    if(upper.test(data)){
+                        upperCase.classList.add('valid')
+                    } else {
+                        upperCase.classList.remove('valid')
+                    }
+                    // number validation check
+                    if(number.test(data)){
+                        digit.classList.add('valid')
+                    } else {
+                        digit.classList.remove('valid')
+                    }
+                    // special character validation check
+                    if(special.test(data)){
+                        specialChar.classList.add('valid')
+                    } else {
+                        specialChar.classList.remove('valid')
+                    }
+                    // length validation check
+                    if(length.test(data)){
+                        minLength.classList.add('valid')
+                    } else {
+                        minLength.classList.remove('valid')
+                    }
+                }
+
+                // show or hide password
+                toggleBtn.onclick = function(){
+                    if (pswrd.type === 'password'){
+                        pswrd.setAttribute('type', 'text');
+                        toggleBtn.classList.add('hide');
+                    } else{
+                        pswrd.setAttribute('type', 'password');
+                        toggleBtn.classList.remove('hide');
+                    }
+                }
+            </script>
             <br>
             <button type="submit">Login</button>
             <br>
