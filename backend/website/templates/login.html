@@ -1,26 +1,132 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <script>function signupf(){var url = "{% url 'signup' %}";window.location.href=url}</script>
-    <title>Sign in</title>
+    <title>Login or Register</title>
+    <script>
+        function toggleForms() {
+            var loginForm = document.getElementById("login-form");
+            var registerForm = document.getElementById("register-form");
+
+            if (loginForm.style.display === "block") {
+                loginForm.style.display = "none";
+                registerForm.style.display = "block";
+            } else {
+                loginForm.style.display = "block";
+                registerForm.style.display = "none";
+            }
+        }
+    </script>
 </head>
 <body>
-    <h1>LOG IN PAGE</h1>
-    <br>
-    {% for msg in messages %}
-        <p class="error">{{ msg }}</p>
-    {% endfor %}
+    <div id="login-form" style="display: block;">
+        <h1>Login</h1>
+        <!-- Your login form here -->
+        <form method="post" action="{% url 'user_login' %}">
+            {% csrf_token %}
+            <label for="email">Email:</label>
+            <input type="email" name="email" required>
+            <br>
+            <label for="password">Password:</label>
+            <input type="password" name="password" required>
+            <br>
+            <button type="submit">Login</button>
+            <br>
+        </form>
+            <!-- Google authentication button -->
+            <button onclick="signInWithGoogle()">Sign in with Google</button>
+            <br>
+            <button type="button" onclick="toggleForms()">Don't have an account? Register here</button>
+    </div>
 
-    <form action="{% url 'login' %}" method="post">
-        {% csrf_token %}
-        Email:
-        <input type="email" name="email" placeholder="your email"><br><br>
-        Password:
-        <input type="password" name="password" placeholder="your password"><br><br>
-        <input type="submit" value="Log In">
-        <br>
-        <p>Don't have an account?</p>
-        <button type="button" onclick=signupf()>Sign Up</button>
-    </form>
+    <div id="register-form" style="display: none;">
+        <h1>Register</h1>
+        <form method="post" action="{% url 'register' %}" id="registration-form">
+            {% csrf_token %}
+            <!-- Registration form fields -->
+            <label for="username">Username:</label>
+            <input type="text" name="username" id="username" required>
+            <span id="username-status"></span>
+            <br>
+            <label for="first_name">First Name:</label>
+            <input type="text" name="first_name" required>
+            <br>
+            <label for="last_name">Last Name:</label>
+            <input type="text" name="last_name" required>
+            <br>
+            <label for="email">Email:</label>
+            <input type="email" name="email" required>
+            <br>
+            <label for="password">Password:</label>
+            <input type="password" name="password" id="password" required>
+            <br>
+            <label for="confirm_password">Confirm Password:</label>
+            <input type="password" name="confirm_password" id="confirm_password" required>
+            <span id="password-match-status"></span>
+            <br>
+            <button type="submit">Register</button>
+        </form>
+        <button type="button" onclick="toggleForms()">Already have an account? Login here</button>
+        <button type="button" onclick="signInWithGoogle()">Sign in with Google</button>
+    
+        <script>
+            // Async function to check if the username is available
+            async function checkUsernameAvailability(username) {
+                try {
+                    const response = await fetch(`/check_username_availability/?username=${username}`);
+                    const data = await response.json();
+
+                    if (data.is_available) {
+                        return true;
+                    } else {
+                        return false;
+                    }
+                } catch (error) {
+                    console.error('Error checking username availability:', error);
+                    return false;
+                }
+            }
+    
+            // Event listener for username input
+            document.getElementById('username').addEventListener('input', async function () {
+                const usernameInput = this.value;
+                const usernameStatusElement = document.getElementById('username-status');
+    
+                if (usernameInput.length === 0) {
+                    // Reset the status if the field is empty
+                    usernameStatusElement.innerHTML = '';
+                    return;
+                }
+    
+                const isAvailable = await checkUsernameAvailability(usernameInput);
+    
+                if (isAvailable) {
+                    // Display a green message if the username is available
+                    usernameStatusElement.innerHTML = '<span style="color: green;">Username available</span>';
+                } else {
+                    // Display a red message if the username is not available
+                    usernameStatusElement.innerHTML = '<span style="color: red;">Username not available</span>';
+                }
+            });
+    
+            // Event listener for password and confirm password input
+            document.getElementById('confirm_password').addEventListener('input', function () {
+                const passwordInput = document.getElementById('password').value;
+                const confirmPasswordInput = this.value;
+                const passwordMatchStatusElement = document.getElementById('password-match-status');
+    
+                if (passwordInput !== confirmPasswordInput) {
+                    // Display a red message if passwords don't match
+                    passwordMatchStatusElement.innerHTML = '<span style="color: red;">Passwords don\'t match</span>';
+                } else {
+                    // Clear the message if passwords match
+                    passwordMatchStatusElement.innerHTML = '';
+                }
+            });
+        </script>
+    </div>
+    
+
+    <script src="{% static 'js/firebase_init.js' %}"></script>
+    <script src="{% static 'js/firebase_google_auth.js' %}"></script>
 </body>
 </html>

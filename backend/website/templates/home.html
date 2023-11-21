@@ -1,12 +1,15 @@
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <script src="https://www.gstatic.com/firebasejs/9.6.6/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.6/firebase-auth.js"></script>
-    <title>Home page</title>
+    <title>Home Page</title>
+    <script src="{% static 'js/firebase_init.js' %}"></script>
+    <script src="{% static 'js/firebase_google_auth.js' %}"></script>
 </head>
 <body>
-    <h1>HELLO THIS IS HOME PAGE</h1>
-    <p>In the beninging</p>
+    <h1>HELLO, THIS IS THE HOME PAGE</h1>
+    <p>In the begninging, in da beingig, in the...</p>
+    <br>
+    <a href="{% url 'user_login' %}"><button type="button">LOGIN</button></a>
 </body>
 </html>

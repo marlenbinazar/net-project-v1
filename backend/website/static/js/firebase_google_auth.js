@@ -4,34 +4,39 @@ import 'firebase/auth';
 // Create Google provider
 var provider = new firebase.auth.GoogleAuthProvider();
 
-firebase.auth()
-    .getRedirectResult()
-    .then((result) => {
-        if (result.credential) {
-            /** @type {firebase.auth.OAuthCredential} */
-            var credential = result.credential;
+function signInWithGoogle() {
+    // Sign in with Google using redirect
+    firebase.auth()
+        .signInWithRedirect(provider);
+}
 
-            // This gives you a Google Access Token. You can use it to access the Google API.
-            var token = credential.accessToken;
-            // ...
-        }
-        // The signed-in user info.
-        var user = result.user;
-        // IdP data available in result.additionalUserInfo.profile.
-        // ...
+// Additional code for getting the redirect result
+function handleRedirectResult() {
+    firebase.auth()
+        .getRedirectResult()
+        .then((result) => {
+            // This block will be executed when the user successfully signs in with Google
+            var user = result.user;
+            console.log('Google user signed in (redirect):', user);
+        })
+        .catch((error) => {
+            // This block will be executed if there is an error during the redirect process
+            var errorCode = error.code;
+            var errorMessage = error.message;
+            console.error('Google sign-in error (redirect):', errorCode, errorMessage);
+        });
+}
+
+// Additional code for signing out
+function signOut() {
+    firebase.auth().signOut().then(() => {
+        // Sign-out successful.
+        console.log('User signed out');
     }).catch((error) => {
-        // Handle Errors here.
-        var errorCode = error.code;
-        var errorMessage = error.message;
-        // The email of the user's account used.
-        var email = error.email;
-        // The firebase.auth.AuthCredential type that was used.
-        var credential = error.credential;
-        // ...
+        // An error happened.
+        console.error('Sign-out error:', error);
     });
+}
 
-firebase.auth().signOut().then(() => {
-    // Sign-out successful.
-}).catch((error) => {
-    // An error happened.
-});
+// Call the function to handle redirect result when the page loads
+handleRedirectResult();

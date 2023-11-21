@@ -9,5 +9,10 @@ urlpatterns = [
     path("login/", views.user_login, name="login"),
     path("logout/", views.user_logout, name="logout"),
     path("profile/", views.profile, name="profile"),
+    path(
+        "check_username_availability/",
+        views.check_username_availability,
+        name="check_username_availability",
+    ),
     # Add more paths as needed
 ]
