@@ -1,8 +1,10 @@
 from base.models import UserProfile
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
 from django.http import JsonResponse
 from django.shortcuts import redirect, render
+from firebase_admin import auth, db
 
 from .firebase_utils import authe, login_and_get_user_data, register_user
 
@@ -19,20 +21,24 @@ def register(request):
         email = request.POST["email"]
         password = request.POST["password"]
 
-        # Call Firebase registration and login function
-        user = register_user(email, password)
+        # Create a Django User instance
+        user = User.objects.create_user(
+            username=username,
+            email=email,
+            password=password,
+        )
 
-        if user:
-            UserProfile.objects.create(
-                user=user,
-                first_name=first_name,
-                last_name=last_name,
-                username=username,
-                email=email,
-            )
-            # You can store the user_token in session or cookie
-            # or use it to fetch additional user details from Firebase
-            request.session["user_token"] = user["idToken"]
+        # Create a UserProfile object
+        UserProfile.objects.create(
+            user=user,
+            first_name=first_name,
+            last_name=last_name,
+            username=username,
+            email=email,
+        )
+
+        # Handle success message and email verification
+        try:
             # Send email verification
             authe.send_email_verification(request.session["user_token"])
 
@@ -41,13 +47,10 @@ def register(request):
                 "login.html",
                 {"message": "Please check your email to verify your account"},
             )
-
-        else:
-            # Handle registration failure
-            messages.error(request, "Registration failed")
+        except Exception as e:
+            # Handle Firebase-related errors
+            messages.error(request, f"Firebase error: {e}")
             return render(request, "login.html")
-
-        # Additional logic, such as creating a user profile in your Django models
 
     return render(request, "login.html")
 

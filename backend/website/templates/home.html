@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -10,6 +11,8 @@
     <h1>HELLO, THIS IS THE HOME PAGE</h1>
     <p>In the begninging, in da beingig, in the...</p>
     <br>
-    <a href="{% url 'user_login' %}"><button type="button">LOGIN</button></a>
+    {% if not user.is_authenticated %}
+        <a href="{% url 'base:user_login' %}"><button type="button">LOGIN</button></a>
+    {% endif %}
 </body>
 </html>

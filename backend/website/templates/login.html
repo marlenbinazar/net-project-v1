@@ -1,3 +1,4 @@
+{% load static %}
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -27,7 +28,7 @@
         }
         .box .inputBox{
             position: relative;
-            width: 100px;
+            width: 300px;
             background: #fff;
             padding: 5px;
             border-radius: 8px;
@@ -54,11 +55,51 @@
             justify-content: center;
             align-items: center;
         }
+        .box .inputBox #toggleConfirmBtn{
+            position: absolute;
+            top: 8px;
+            right: 10px;
+            width: 34px;
+            height: 34px;
+            /* background: rgba(0, 0, 0 ,0.05); */
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .box .inputBox #toggleLoginPassBtn{
+            position: absolute;
+            top: 8px;
+            right: 10px;
+            width: 34px;
+            height: 34px;
+            /* background: rgba(0, 0, 0 ,0.05); */
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
         .box .inputBox #toggleBtn::before{
             content: '\f06e';
             font-family: fontAwesome;
         }
+        .box .inputBox #toggleConfirmBtn::before{
+            content: '\f06e';
+            font-family: fontAwesome;
+        }
+        .box .inputBox #toggleLoginPassBtn::before{
+            content: '\f06e';
+            font-family: fontAwesome;
+        }
         .box .inputBox #toggleBtn.hide::before{
+            content: '\f070';
+        }
+        .box .inputBox #toggleConfirmBtn.hide::before{
+            content: '\f070';
+        }
+        .box .inputBox #toggleLoginPassBtn.hide::before{
             content: '\f070';
         }
         .validation{
@@ -115,7 +156,7 @@
     <div id="login-form" style="display: block;">
         <h1>Login</h1>
         <!-- Your login form here -->
-        <form method="post" action="{% url 'user_login' %}">
+        <form method="post" action="{% url 'base:user_login' %}">
             {% csrf_token %}
             <label for="email">Email:</label>
             <input type="email" name="email" required>
@@ -123,8 +164,73 @@
             <div class="box">
                 <label for="password">Password:</label>
                 <div class="inputBox">
+                    <input type="password" name="password" id="password" placeholder="Password" required>
+                    <span id="toggleLoginPassBtn"></span>
+                </div>
+            </div>
+            <script>
+                let password = document.getElementById('password');
+                let toggleLoginPassBtn = document.getElementById('toggleLoginPassBtn');
+                // show or hide password
+                toggleLoginPassBtn.onclick = function(){
+                    if (password.type === 'password'){
+                        password.setAttribute('type', 'text');
+                        toggleLoginPassBtn.classList.add('hide');
+                    } else{
+                        password.setAttribute('type', 'password');
+                        toggleLoginPassBtn.classList.remove('hide');
+                    }
+                }
+            </script>
+            <br>
+            <button type="submit">Login</button>
+            <br>
+        </form>
+            <!-- Google authentication button -->
+            <button onclick="signInWithGoogle()">Sign in with Google</button>
+            <br>
+            <button type="button" onclick="toggleForms()">Don't have an account? Register here</button>
+    </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <div id="register-form" style="display: none;">
+        <h1>Register</h1>
+        <form method="post" action="{% url 'base:register' %}" id="registration-form">
+            {% csrf_token %}
+            <!-- Registration form fields -->
+            <label for="username">Username:</label>
+            <input type="text" name="username" id="username" required>
+            <span id="username-status"></span>
+            <br>
+            <label for="first_name">First Name:</label>
+            <input type="text" name="first_name" required>
+            <br>
+            <label for="last_name">Last Name:</label>
+            <input type="text" name="last_name" required>
+            <br>
+            <label for="email">Email:</label>
+            <input type="email" name="email" required>
+            <br>
+            <div class="box">
+                <label for="password">Password:</label>
+                <div class="inputBox">
                     <input type="password" onkeyup="checkPassword(this.value)" id="pswrd" placeholder="Password" name="password" required>
-                    <span id="toggleBtn">A</span>
+                    <span id="toggleBtn"></span>
                 </div> 
                 <div class="validation">
                     <ul>
@@ -138,19 +244,6 @@
             </div>
             <script>
                 let pswrd = document.getElementById('pswrd');
-                
-                pswrd.addEventListener('click', () => {
-                    const form = document.getElementById('form');
-
-                    if (form.style.display === 'none') {
-                        // 👇️ this SHOWS the form
-                        form.style.display = 'block';
-                    } else {
-                        // 👇️ this HIDES the form
-                        // form.style.display = 'none';
-                        form.style.display = 'block';
-                    }
-                });
                 let toggleBtn = document.getElementById('toggleBtn');
                 let lowerCase = document.getElementById('lower');
                 let upperCase = document.getElementById('upper');
@@ -210,38 +303,27 @@
                 }
             </script>
             <br>
-            <button type="submit">Login</button>
-            <br>
-        </form>
-            <!-- Google authentication button -->
-            <button onclick="signInWithGoogle()">Sign in with Google</button>
-            <br>
-            <button type="button" onclick="toggleForms()">Don't have an account? Register here</button>
-    </div>
-
-    <div id="register-form" style="display: none;">
-        <h1>Register</h1>
-        <form method="post" action="{% url 'register' %}" id="registration-form">
-            {% csrf_token %}
-            <!-- Registration form fields -->
-            <label for="username">Username:</label>
-            <input type="text" name="username" id="username" required>
-            <span id="username-status"></span>
-            <br>
-            <label for="first_name">First Name:</label>
-            <input type="text" name="first_name" required>
-            <br>
-            <label for="last_name">Last Name:</label>
-            <input type="text" name="last_name" required>
-            <br>
-            <label for="email">Email:</label>
-            <input type="email" name="email" required>
-            <br>
-            <label for="password">Password:</label>
-            <input type="password" name="password" id="password" required>
-            <br>
-            <label for="confirm_password">Confirm Password:</label>
-            <input type="password" name="confirm_password" id="confirm_password" required>
+            <div class="box">
+                <label for="confirm_password">Confirm Password:</label>
+                <div class="inputBox">
+                    <input type="password" name="confirm_password" id="confirm_pswrd" placeholder="Confirm password" required>
+                    <span id="toggleConfirmBtn"></span>
+                </div>
+            </div>
+            <script>
+                let confirm_pswrd = document.getElementById('confirm_pswrd');
+                let toggleConfirmBtn = document.getElementById('toggleConfirmBtn');
+                // show or hide password
+                toggleConfirmBtn.onclick = function(){
+                    if (confirm_pswrd.type === 'password'){
+                        confirm_pswrd.setAttribute('type', 'text');
+                        toggleConfirmBtn.classList.add('hide');
+                    } else{
+                        confirm_pswrd.setAttribute('type', 'password');
+                        toggleConfirmBtn.classList.remove('hide');
+                    }
+                }
+            </script>
             <span id="password-match-status"></span>
             <br>
             <button type="submit">Register</button>
@@ -290,8 +372,8 @@
             });
     
             // Event listener for password and confirm password input
-            document.getElementById('confirm_password').addEventListener('input', function () {
-                const passwordInput = document.getElementById('password').value;
+            document.getElementById('confirm_pswrd').addEventListener('input', function () {
+                const passwordInput = document.getElementById('pswrd').value;
                 const confirmPasswordInput = this.value;
                 const passwordMatchStatusElement = document.getElementById('password-match-status');
     

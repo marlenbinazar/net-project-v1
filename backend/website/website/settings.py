@@ -1,6 +1,7 @@
 import os
 from pathlib import Path
 
+import firebase_admin
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -20,6 +21,12 @@ DEBUG = os.environ.get("DEBUG")
 
 ALLOWED_HOSTS = []
 
+firebase_admin.initialize_app(
+    {
+        "projectId": "netshards-app",
+        "serviceAccount": "../service_account_key.json",
+    }
+)
 
 # Application definition
 

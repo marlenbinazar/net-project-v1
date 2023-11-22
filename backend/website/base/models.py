@@ -1,10 +1,12 @@
 from django.contrib.auth.models import BaseUserManager, User
 from django.contrib.auth.password_validation import get_default_password_validators
 from django.contrib.auth.validators import UnicodeUsernameValidator
-from django.core.exceptions import ValidationError
 from django.db import models
+from django.db.models.signals import post_delete, post_save
+from django.dispatch import receiver
 from django.utils import timezone
 from django.utils.text import slugify
+from firebase_admin import auth, db
 
 
 class CustomUserManager(BaseUserManager):
@@ -77,6 +79,62 @@ class UserProfile(models.Model):
         # Implement logic for password reset through email recovery
         # You may use Django's built-in password reset functionality
         pass
+
+    @receiver(post_save, sender=User)
+    def sync_user_data_to_firebase(sender, instance, created, **kwargs):
+        if created:
+            # Create a new Firebase user and update their data
+            firebase_user = auth.create_user(instance.email, instance.password)
+            uid = firebase_user.uid
+
+            # Update user data in Firebase
+            db.ref(f"users/{uid}").set(
+                {
+                    "first_name": instance.first_name,
+                    "last_name": instance.last_name,
+                    "username": instance.username,
+                    "email": instance.email,
+                }
+            )
+
+
+@receiver(post_save, sender=UserProfile)
+def update_author_profile_in_firebase(sender, instance, **kwargs):
+    if instance.user_type == "author":
+        # Update author profile data in Firebase
+        db.ref(f"authors/{instance.user.id}").set(
+            {
+                "first_name": instance.first_name,
+                "last_name": instance.last_name,
+                "profile_picture": instance.profile_picture.url
+                if instance.profile_picture
+                else None,
+                "profile_info": instance.profile_info,
+                "social_links": instance.social_links,
+                "is_verified": instance.is_verified,
+            }
+        )
+
+
+@receiver(post_save, sender=UserProfile)
+def sync_user_profile_updates_to_firebase(sender, instance, **kwargs):
+    # Update user data in Firebase
+    db.ref(f"users/{instance.user.id}").update(
+        {
+            "first_name": instance.first_name,
+            "last_name": instance.last_name,
+            "username": instance.username,
+            "email": instance.email,
+        }
+    )
+
+
+@receiver(post_delete, sender=UserProfile)
+def delete_user_data_from_firebase(sender, instance, **kwargs):
+    # Delete the corresponding Firebase user
+    uid = instance.id
+    if uid:
+        auth.delete_user(uid)
 
 
 class AuthorProfile(models.Model):
