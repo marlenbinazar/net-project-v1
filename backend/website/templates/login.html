@@ -4,6 +4,12 @@
     <meta charset="UTF-8">
     <title>Login or Register</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" integrity="sha512-z3gLpd7yknf1YoNbCzqRKc4qyor8gaKU1qmn+CShxbuBusANI9QpRohGBreCFkKxLhei6S9CQXFEbbKuqLg0DA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <!-- <script src="https://www.gstatic.com/firebasejs/10.5.2/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.5.2/firebase-auth.js"></script> -->
+    <!-- <script type="module" src="{% static 'js/firebase_auth_init.js' %}"></script> -->
+    <!-- <script src="https://www.gstatic.com/firebasejs/ui/6.0.1/firebase-ui-auth.js"></script>
+    <link type="text/css" rel="stylesheet" href="https://www.gstatic.com/firebasejs/ui/6.0.1/firebase-ui-auth.css" /> -->
+    
     <script>
         function toggleForms() {
             var loginForm = document.getElementById("login-form");
@@ -147,6 +153,7 @@
     </style>
 </head>
 <body>
+    <!-- <div id="firebaseui-auth-container"></div> -->
     {% if message %}
         <p style="color: green;">{{ message }}</p>
     {% endif %}
@@ -187,7 +194,7 @@
             <br>
         </form>
             <!-- Google authentication button -->
-            <button onclick="signInWithGoogle()">Sign in with Google</button>
+            <!-- <button onclick="signInWithGoogle()">Sign in with Google</button> -->
             <br>
             <button type="button" onclick="toggleForms()">Don't have an account? Register here</button>
     </div>
@@ -329,7 +336,7 @@
             <button type="submit">Register</button>
         </form>
         <button type="button" onclick="toggleForms()">Already have an account? Login here</button>
-        <button type="button" onclick="signInWithGoogle()">Sign in with Google</button>
+        <!-- <button type="button" onclick="signInWithGoogle()">Sign in with Google</button> -->
     
         <script>
             // Async function to check if the username is available
@@ -387,9 +394,5 @@
             });
         </script>
     </div>
-    
-
-    <script src="{% static 'js/firebase_init.js' %}"></script>
-    <script src="{% static 'js/firebase_google_auth.js' %}"></script>
 </body>
 </html>

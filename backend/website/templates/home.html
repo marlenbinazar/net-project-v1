@@ -4,12 +4,17 @@
 <head>
     <meta charset="UTF-8">
     <title>Home Page</title>
-    <script src="{% static 'js/firebase_init.js' %}"></script>
-    <script src="{% static 'js/firebase_google_auth.js' %}"></script>
+    <!-- <script src="/node_modules/firebase/firebase-app.js"></script>
+    <script src="/node_modules/firebase/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/ui/6.0.1/firebase-ui-auth.js"></script>
+    <link type="text/css" rel="stylesheet" href="https://www.gstatic.com/firebasejs/ui/6.0.1/firebase-ui-auth.css" />
+    <script type="module" src="{% static 'js/firebase_ui_auth.js' %}"></script>
+    <script type="module" src="{% static 'js/ui.js' %}"></script> -->
 </head>
 <body>
+    <div id="firebaseui-auth-container"></div>
     <h1>HELLO, THIS IS THE HOME PAGE</h1>
-    <p>In the begninging, in da beingig, in the...</p>
+    <p>In the beninging, in da beingig, in the...</p>
     <br>
     {% if not user.is_authenticated %}
         <a href="{% url 'base:user_login' %}"><button type="button">LOGIN</button></a>

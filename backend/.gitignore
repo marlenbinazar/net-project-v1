@@ -3,4 +3,4 @@ db.sqlite3
 .env
 __pycache__
 node_modules/
-service_account_key.json
+netshards-app-firebase-adminsdk-6ocke-ecdef77a70.json

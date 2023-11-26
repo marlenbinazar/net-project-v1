@@ -1,12 +1,16 @@
-from django.contrib.auth.models import BaseUserManager, User
+from django.contrib.auth.models import (
+    AbstractBaseUser,
+    BaseUserManager,
+    Group,
+    Permission,
+    PermissionsMixin,
+)
 from django.contrib.auth.password_validation import get_default_password_validators
 from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.db import models
 from django.db.models.signals import post_delete, post_save
-from django.dispatch import receiver
 from django.utils import timezone
 from django.utils.text import slugify
-from firebase_admin import auth, db
 
 
 class CustomUserManager(BaseUserManager):
@@ -20,34 +24,52 @@ class CustomUserManager(BaseUserManager):
             validator.validate(password)
 
         user = self.model(email=email, username=username, **extra_fields)
-
         user.set_password(password)
         user.save(using=self._db)
+
+        profile = UserProfile.objects.create(user=user)
+        profile.first_name = user.first_name
+        profile.last_name = user.last_name
+        profile.username = user.username
+        profile.email = user.email
+        profile.save()
         return user
 
     def create_superuser(self, email, username, password=None, **extra_fields):
         extra_fields.setdefault("is_staff", True)
         extra_fields.setdefault("is_superuser", True)
 
-        UnicodeUsernameValidator()(username)
-
-        for validator in get_default_password_validators():
-            validator.validate(password)
-
-        return self.create_user(email, username, password, **extra_fields)
+        user = self.create_user(email, username, password, **extra_fields)
+        return user
 
 
-class UserProfile(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
+class CustomUser(AbstractBaseUser, PermissionsMixin):
+    objects = CustomUserManager()
+    email = models.EmailField(unique=True)
+    username = models.CharField(max_length=100, unique=True)
     first_name = models.CharField(max_length=100)
     last_name = models.CharField(max_length=100)
-    username = models.CharField(max_length=100, unique=True)
-    email = models.EmailField(unique=True)
+    is_active = models.BooleanField(default=True)
+    is_staff = models.BooleanField(default=False)
+    groups = models.ManyToManyField(Group, related_name="custom_user_groups")
+    user_permissions = models.ManyToManyField(
+        Permission, related_name="custom_user_permissions"
+    )
     user_type = models.CharField(
         max_length=20,
         choices=[("normal", "Normal"), ("author", "Author"), ("admin", "Admin")],
     )
-    permissions = models.TextField()
+    date_joined = models.DateTimeField(default=timezone.now)
+
+    USERNAME_FIELD = "email"
+    REQUIRED_FIELDS = ["username"]
+
+    def __str__(self):
+        return self.email
+
+
+class UserProfile(models.Model):
+    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
     profile_picture = models.ImageField(
         upload_to="profile_pics/", null=True, blank=True
     )
@@ -55,102 +77,28 @@ class UserProfile(models.Model):
     following_authors = models.ManyToManyField(
         "AuthorProfile", related_name="author_followers", blank=True
     )
-    friends = models.ManyToManyField(User, related_name="friends", blank=True)
+    friends = models.ManyToManyField(
+        CustomUser, related_name="user_friends", blank=True
+    )
     banned_by_authors = models.ManyToManyField(
         "AuthorProfile", related_name="author_banned_users", blank=True
     )
 
-    objects = CustomUserManager()
-
-    def set_password(self, raw_password):
-        # Implement your custom password validation here before setting the password
-        # You can use Django's built-in validators or add your own logic
-        # Example: validate_password(raw_password)
-        for validator in get_default_password_validators():
-            validator.validate(raw_password)
-        super().set_password(raw_password)
-
-    def change_password(self, new_password):
-        # Implement logic to change user's password
-        self.set_password(new_password)
-        self.save()
-
-    def reset_password(self):
-        # Implement logic for password reset through email recovery
-        # You may use Django's built-in password reset functionality
-        pass
-
-    @receiver(post_save, sender=User)
-    def sync_user_data_to_firebase(sender, instance, created, **kwargs):
-        if created:
-            # Create a new Firebase user and update their data
-            firebase_user = auth.create_user(instance.email, instance.password)
-            uid = firebase_user.uid
-
-            # Update user data in Firebase
-            db.ref(f"users/{uid}").set(
-                {
-                    "first_name": instance.first_name,
-                    "last_name": instance.last_name,
-                    "username": instance.username,
-                    "email": instance.email,
-                }
-            )
-
-
-@receiver(post_save, sender=UserProfile)
-def update_author_profile_in_firebase(sender, instance, **kwargs):
-    if instance.user_type == "author":
-        # Update author profile data in Firebase
-        db.ref(f"authors/{instance.user.id}").set(
-            {
-                "first_name": instance.first_name,
-                "last_name": instance.last_name,
-                "profile_picture": instance.profile_picture.url
-                if instance.profile_picture
-                else None,
-                "profile_info": instance.profile_info,
-                "social_links": instance.social_links,
-                "is_verified": instance.is_verified,
-            }
-        )
-
-
-@receiver(post_save, sender=UserProfile)
-def sync_user_profile_updates_to_firebase(sender, instance, **kwargs):
-    # Update user data in Firebase
-    db.ref(f"users/{instance.user.id}").update(
-        {
-            "first_name": instance.first_name,
-            "last_name": instance.last_name,
-            "username": instance.username,
-            "email": instance.email,
-        }
-    )
-
-
-@receiver(post_delete, sender=UserProfile)
-def delete_user_data_from_firebase(sender, instance, **kwargs):
-    # Delete the corresponding Firebase user
-    uid = instance.id
-    if uid:
-        auth.delete_user(uid)
-
 
 class AuthorProfile(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
     profile_picture = models.ImageField(
         upload_to="profile_pics/", null=True, blank=True
     )
     profile_info = models.TextField(null=True, blank=True)
     followers = models.ManyToManyField(
-        User, related_name="user_following_authors", blank=True
+        CustomUser, related_name="user_following_authors", blank=True
     )
     cooperated_authors = models.ManyToManyField("self", blank=True)
     social_links = models.URLField(null=True, blank=True)
     is_verified = models.BooleanField(default=False)
     banned_users = models.ManyToManyField(
-        User, related_name="iam_banned_by_authors", blank=True
+        CustomUser, related_name="iam_banned_by_authors", blank=True
     )
 
 
@@ -235,7 +183,7 @@ class Page(models.Model):
 
 
 class Comment(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
     content = models.ForeignKey(Content, on_delete=models.CASCADE)
     text = models.TextField()
     likes = models.IntegerField(default=0)
@@ -259,7 +207,7 @@ class Comment(models.Model):
 
 
 class Notification(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
     text = models.TextField()
     status = models.CharField(
         max_length=20, choices=[("unread", "Unread"), ("read", "Read")]
@@ -268,7 +216,7 @@ class Notification(models.Model):
 
 
 class ReadingHistory(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
     content = models.ForeignKey(Content, on_delete=models.CASCADE)
     last_read_chapter = models.ForeignKey(
         Chapter, on_delete=models.CASCADE, null=True, blank=True

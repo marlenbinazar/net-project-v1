@@ -1,5 +1,5 @@
 {
-    "include": ["./website/static/js/**/*"],
+    "include": ["website/base/static/js/**/*"],
     "compilerOptions": {
       "checkJs": false
     }
